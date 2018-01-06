@@ -1,0 +1,1 @@
+java -cp .\out\production\TORrent Main 2 p2skrypt.txt

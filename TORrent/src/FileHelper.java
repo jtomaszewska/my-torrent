@@ -14,21 +14,45 @@ public class FileHelper {
 
     public static FileData[] generateFilesList(String workingDirectory)throws Exception{
 
-        List<String> list = new ArrayList();
+        List<String> list = new ArrayList<>();
         File[] files = new File(workingDirectory).listFiles();
         for (File file: files){
             list.add(file.getName());
         }
-        FileData[] filesList = new FileData[list.size()];
+        return readFiles(workingDirectory, list, false);
+    }
 
-        for (int i = 0; i < list.size(); i++) {
+    public static FileData[] readFiles(String workingDirectory, List<String> filesToRead)throws Exception {
+        return readFiles(workingDirectory, filesToRead, true);
+    }
+
+    private static FileData[] readFiles(String workingDirectory, List<String> filesToRead, boolean fillData)throws Exception{
+
+        FileData[] filesList = new FileData[filesToRead.size()];
+        for (int i = 0; i < filesToRead.size(); i++) {
             filesList[i] = new FileData();
-            filesList[i].setFileName(list.get(i));
-            byte[] file = FileHelper.fileRead(workingDirectory + "\\" + list.get(i));
+            filesList[i].setFileName(filesToRead.get(i));
+            byte[] file = FileHelper.fileRead(workingDirectory + "\\" + filesToRead.get(i));
             filesList[i].setCheckSum(CheckSum.generateCheckSum(file));
+            filesList[i].setData(file);
+            if (fillData){
+                filesList[i].setData(file);
+            }
+
         }
         return filesList;
     }
+
+    public static FileData[] createFileDataList(List<String> filesToRead)throws Exception{
+
+        FileData[] filesList = new FileData[filesToRead.size()];
+        for (int i = 0; i < filesToRead.size(); i++) {
+            filesList[i] = new FileData();
+            filesList[i].setFileName(filesToRead.get(i));
+        }
+        return filesList;
+    }
+
 
     public static byte[] fileRead(String filePath)throws Exception{
         Path path = Paths.get(filePath);

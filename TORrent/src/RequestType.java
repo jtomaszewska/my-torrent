@@ -3,5 +3,8 @@
  */
 public enum RequestType {
 
-    FILES_LIST, FILE_PULL, FILE_PUSH,
+    FILES_LIST_REQUEST,
+    FILES_LIST_RESPONSE,
+    FILE_PULL,
+    FILE_PUSH,
 }

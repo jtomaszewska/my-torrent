@@ -8,6 +8,15 @@ public class FileData implements Serializable{
 
     private String fileName;
     private byte[] checkSum;
+    private byte[] data;
+
+    public byte[] getData() {
+        return data;
+    }
+
+    public void setData(byte[] data) {
+        this.data = data;
+    }
 
     public String getFileName() {
         return fileName;

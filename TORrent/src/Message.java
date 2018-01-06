@@ -5,10 +5,7 @@ import java.io.Serializable;
  */
 public class Message implements Serializable {
 
-    private String fileName;
     private FileData[] filesList;
-    private byte[] data;
-    private byte[] checkSum;
     private RequestType requestType;
 
     public RequestType getRequestType() {
@@ -25,30 +22,6 @@ public class Message implements Serializable {
 
     public void setFilesList(FileData[] filesList) {
         this.filesList = filesList;
-    }
-
-    public String getFileName() {
-        return fileName;
-    }
-
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
-
-    public byte[] getData() {
-        return data;
-    }
-
-    public void setData(byte[] data) {
-        this.data = data;
-    }
-
-    public byte[] getCheckSum() {
-        return checkSum;
-    }
-
-    public void setCheckSum(byte[] checkSum) {
-        this.checkSum = checkSum;
     }
 
 }
