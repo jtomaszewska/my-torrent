@@ -28,19 +28,41 @@ public class FileHelper {
 
     private static FileData[] readFiles(String workingDirectory, List<String> filesToRead, boolean fillData)throws Exception{
 
-        FileData[] filesList = new FileData[filesToRead.size()];
-        for (int i = 0; i < filesToRead.size(); i++) {
-            filesList[i] = new FileData();
-            filesList[i].setFileName(filesToRead.get(i));
-            byte[] file = FileHelper.fileRead(workingDirectory + "\\" + filesToRead.get(i));
-            filesList[i].setCheckSum(CheckSum.generateCheckSum(file));
-            filesList[i].setData(file);
-            if (fillData){
-                filesList[i].setData(file);
+        ArrayList<FileData> filesList = new ArrayList<>();
+        for (String fileName: filesToRead) {
+
+            String filePath = workingDirectory + "\\" + fileName;
+            File f = new File(filePath);
+            if(f.exists() && f.isFile()) {
+                FileData fileData = new FileData();
+                fileData.setFileName(fileName);
+                byte[] file = FileHelper.fileRead(filePath);
+                fileData.setCheckSum(CheckSum.generateCheckSum(file));
+                if (fillData){
+                    fileData.setData(file);
+                }
+                filesList.add(fileData);
+            }
+            else{
+                System.out.println("Plik nie istnieje: " + filePath);
             }
 
         }
-        return filesList;
+
+        return filesList.toArray(new FileData[0]);
+
+//        for (int i = 0; i < filesToRead.size(); i++) {
+//            filesList[i] = new FileData();
+//            filesList[i].setFileName(filesToRead.get(i));
+//            byte[] file = FileHelper.fileRead(workingDirectory + "\\" + filesToRead.get(i));
+//            filesList[i].setCheckSum(CheckSum.generateCheckSum(file));
+//            filesList[i].setData(file);
+//            if (fillData){
+//                filesList[i].setData(file);
+//            }
+//
+//        }
+//        return filesList;
     }
 
     public static FileData[] createFileDataList(List<String> filesToRead)throws Exception{
