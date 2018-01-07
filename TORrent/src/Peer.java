@@ -13,6 +13,10 @@ public class Peer {
     private String workingDirectory;
     private Thread peerListeningThread;
 
+    private ObjectInputStream objectInputStream;
+
+    private ObjectOutputStream objectOutputStream;
+
     public String getWorkingDirectory() {
         return workingDirectory;
     }
@@ -25,8 +29,10 @@ public class Peer {
         return clientSocket;
     }
 
-    public void setClientSocket(Socket clientSocket) {
+    public void setClientSocket(Socket clientSocket) throws Exception {
+
         this.clientSocket = clientSocket;
+
     }
 
     public String getName() {
@@ -37,7 +43,7 @@ public class Peer {
         this.name = name;
     }
 
-    public void startListening(){
+    public void startListening() {
         peerListeningThread = new Thread(() -> {
             try {
                 processIncomingMessages();
@@ -55,48 +61,92 @@ public class Peer {
     }
 
     private void sendMessage(Message message) throws Exception {
-        OutputStream outStr = this.getClientSocket().getOutputStream();
-        ObjectOutputStream obj_out = new ObjectOutputStream(outStr);
-        obj_out.writeObject(message);
+
+        if (objectOutputStream == null){
+            OutputStream outputStream = this.getClientSocket().getOutputStream();
+            objectOutputStream = new ObjectOutputStream(outputStream);
+        }
+
+        objectOutputStream.writeObject(message);
         System.out.println("Wysłano wiadomosc " + message.getRequestType());
     }
 
     public void requestForFiles(ArrayList<String> filesList) throws Exception {
         Message request = new Message();
-        request.setRequestType(RequestType.FILE_PUSH);
+        request.setRequestType(RequestType.FILES_REQUEST);
         FileData[] filesDataList = FileHelper.createFileDataList(filesList);
         request.setFilesList(filesDataList);
         sendMessage(request);
     }
 
-    public void processIncomingMessages() throws Exception {
-
-        InputStream inputStream = clientSocket.getInputStream();
-        ObjectInputStream objectInputStream = new ObjectInputStream(inputStream);
+    private void processIncomingMessages() throws Exception {
 
         do {
-            Message incomingMessage = (Message) objectInputStream.readObject();
-            System.out.println("Peer " + getName() + " przesyla wiadomosc: " + incomingMessage.getRequestType());
-
-            switch (incomingMessage.getRequestType()) {
-                case FILES_LIST_REQUEST:
-                    Message response = createMyFilesListMessage();
-                    sendMessage(response);
-                    break;
-                case FILES_LIST_RESPONSE:
-                    System.out.println("Lista plików: ");
-                    for (FileData file : incomingMessage.getFilesList()) {
-                        System.out.println("nazwa: " + file.getFileName() + " suma kontrolna: " + file.getCheckSum());
-                    }
-                    break;
-                case FILE_PULL:
-                    break;
-                case FILE_PUSH:
-                    break;
-            }
+            //try{
+                readIncomingMessage();
+            //}catch (Exception ex){
+            //   System.out.println("Wyjatek w trakcie przetwarzania przychodzacej wiadomosci: " + ex);
+            //}
         }
         while (true);
 
+    }
+
+    private void readIncomingMessage() throws Exception {
+
+        if (objectInputStream == null){
+            InputStream inputStream = clientSocket.getInputStream();
+            objectInputStream = new ObjectInputStream(inputStream);
+        }
+
+        Message incomingMessage = (Message) objectInputStream.readObject();
+        System.out.println("Peer " + getName() + " przesyla wiadomosc: " + incomingMessage.getRequestType());
+
+        switch (incomingMessage.getRequestType()) {
+            case FILES_LIST_REQUEST:
+                Message response = createMyFilesListMessage();
+                sendMessage(response);
+                break;
+            case FILES_LIST_RESPONSE:
+                System.out.println("Lista plików: ");
+                for (FileData file : incomingMessage.getFilesList()) {
+                    System.out.println("nazwa: " + file.getFileName() + " suma kontrolna: " + file.getCheckSumString());
+                }
+                break;
+            case FILES_SAVE:
+                System.out.println("Zapisuję pliki: ");
+                for (FileData file : incomingMessage.getFilesList()) {
+                    if (CheckSum.chceckCheckSum(file.getData(), file.getCheckSum())) {
+                        System.out.println("zapisuje plik nazwa: " + file.getFileName() + " suma kontrolna: " + file.getCheckSumString());
+                        FileHelper.fileSave(file.getData(), this.getWorkingDirectory() + "\\" + file.getFileName());
+                    }
+                    else{
+                        System.out.println("błąd zapisywania: niepoprawna suma kontrolna pliku: "+ file.getFileName());
+                    }
+                }
+                break;
+            case FILES_REQUEST:
+                System.out.println("Wysyam pliki: ");
+                ArrayList<String> filesNamesToSend = new ArrayList<>();
+                for (FileData fileData : incomingMessage.getFilesList()) {
+                    filesNamesToSend.add(fileData.getFileName());
+                }
+                sendFilesToPeer(filesNamesToSend);
+                break;
+        }
+    }
+
+    private void sendFilesToPeer(ArrayList<String> filesNamesToSend) throws Exception {
+        FileData[] filesToSend = FileHelper.readFiles(workingDirectory, filesNamesToSend);
+        System.out.println("Wysylam pliki");
+        for (FileData file : filesToSend) {
+            System.out.println("plik: " + file);
+        }
+        Message responseWithFiles = new Message();
+        responseWithFiles.setRequestType(RequestType.FILES_SAVE);
+        responseWithFiles.setFilesList(filesToSend);
+
+        sendMessage(responseWithFiles);
     }
 
     private Message createMyFilesListMessage() throws Exception {
@@ -107,11 +157,7 @@ public class Peer {
         return resultList;
     }
 
-    private Message createFilesMessage(RequestType type, List<String> requestedFiles) throws Exception {
-        FileData[] filesList = FileHelper.readFiles(workingDirectory, requestedFiles);
-        Message resultList = new Message();
-        resultList.setFilesList(filesList);
-        resultList.setRequestType(type);
-        return resultList;
+    public void sendFiles(ArrayList<String> filesList) throws Exception {
+        sendFilesToPeer(filesList);
     }
 }

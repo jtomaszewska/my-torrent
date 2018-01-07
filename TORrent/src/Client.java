@@ -43,7 +43,7 @@
 //                    System.out.println("nazwa: "+res.getFilesList()[i].getFileName()+" suma kontrolna: "+res.getFilesList()[i].getCheckSum());
 //                }
 //                break;
-//            case FILE_PULL:
+//            case FILES_SAVE:
 //                String path = workingDirectory + "\\" + res.getFilesNames()[0];
 //                for (int j = 0; j < res.getFilesNames().length; j++) {
 //                    if (CheckSum.chceckCheckSum(res.getData(), res.getCheckSum()))
@@ -78,7 +78,7 @@
 //        System.out.println("pobranao nazwę pliku");
 //
 //        System.out.println("klient wysyła zapytanie o plik");
-//        createMessage(clientSocket, RequestType.FILE_PULL, filesToDownload);
+//        createMessage(clientSocket, RequestType.FILES_SAVE, filesToDownload);
 //
 //        System.out.println("klient odbiera plik");
 //        getResponse(clientSocket, workingDirectory);
@@ -96,7 +96,7 @@
 //        System.out.println("pobranao nazwę pliku");
 //
 //        System.out.println("klient wysyła plik");
-//        createMessage(clientSocket, RequestType.FILE_PUSH, fileToSend);
+//        createMessage(clientSocket, RequestType.FILES_REQUEST, fileToSend);
 //
 //
 //        clientSocket.close();

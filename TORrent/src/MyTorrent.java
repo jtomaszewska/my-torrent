@@ -6,11 +6,11 @@ import java.util.List;
 /**
  * Created by Justynaa on 2018-01-06.
  */
-public class Main {
+public class MyTorrent {
     public static void main(String[] args) throws Exception {
 
         if (args.length == 0) {
-            System.out.println("Brak argumentow: Main id skrypt");
+            System.out.println("Brak argumentow: MyTorrent id skrypt");
             return;
         }
 
@@ -24,7 +24,7 @@ public class Main {
             commands = Files.readAllLines(file);
             System.out.println("wczytano skrypt z poleceniami "+args[1]);
         }
-        host.run(commands);
+        host.startHost(commands);
 
     }
 

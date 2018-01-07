@@ -1,1 +1,1 @@
-java -cp .\out\production\TORrent Main 1 p1skrypt.txt
+java.exe -cp .\out\production\TORrent MyTorrent 1 p1skrypt.txt

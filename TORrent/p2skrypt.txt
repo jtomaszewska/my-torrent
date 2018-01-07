@@ -3,3 +3,5 @@ wait 500
 connect 2001
 wait 500
 filesList Peer_2_1
+wait 500
+downloadFile Peer_2_1 a.jpg

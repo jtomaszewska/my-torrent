@@ -31,7 +31,7 @@
 //                Message resultList = createFilesListMessage(workingDirectory);
 //                obj_out.writeObject(resultList);
 //                break;
-//            case FILE_PULL:
+//            case FILES_SAVE:
 //                System.out.println("SER: wysyłanie plików");
 //
 //                String[] fileName = r.getFilesNames();
@@ -39,13 +39,13 @@
 //                Message resultFile = new Message();
 //                resultFile.setFilesNames(fileName);
 //                resultFile.setData(file);
-//                resultFile.setRequestType(RequestType.FILE_PULL);
+//                resultFile.setRequestType(RequestType.FILES_SAVE);
 //                byte[] checkSum = CheckSum.generateCheckSum(file);
 //                resultFile.setCheckSum(checkSum);
 //                System.out.println("suma kontrolna " + checkSum);
 //                obj_out.writeObject(resultFile);
 //                break;
-//            case FILE_PUSH:
+//            case FILES_REQUEST:
 //                System.out.println("SER: zapisywanie pliku");
 //                //Message saveFile = new Message();
 ////                saveFile.setFilesNames(r.getFilesNames());

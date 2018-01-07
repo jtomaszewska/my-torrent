@@ -1,2 +1,3 @@
+//setWorkingDirectory D:\\TORrent_1
 runserver 2001
 wait 500

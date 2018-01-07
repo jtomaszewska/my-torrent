@@ -25,7 +25,7 @@ public class Host {
         workingDirectory =  Paths.get(".").toAbsolutePath().normalize().toString() + "\\" + hostId;
     }
 
-    public void run(List<String> commandsToRun) throws Exception {
+    public void startHost(List<String> commandsToRun) throws Exception {
         System.out.println("Starting host: " + hostId + ", working dir: " + workingDirectory);
 
         if (commandsToRun != null){
@@ -76,6 +76,7 @@ public class Host {
                 requestForFiles(commandSplit);
                 break;
             case "sendfile":
+                sendFilesToPeer(commandSplit);
                 break;
             case "exit":
                 clenaup();
@@ -85,10 +86,29 @@ public class Host {
             case "wait":
                 Thread.sleep(Integer.parseInt(commandSplit[1]));
                 break;
+            case "setworkingdirectory":
+                this.workingDirectory = commandSplit[1];
+                break;
             default:
                 System.out.println("nieznane polecenie: " + commandSplit[0]);
                 break;
         }
+    }
+
+    private void sendFilesToPeer(String[] commandSplit) throws Exception {
+        String hostId = commandSplit[1];
+        System.out.println("Wysyłam pliki do " + hostId);
+        Peer peer = findPeerByName(hostId);
+        if (peer == null){
+            System.out.println("Nieznany peer: " + hostId);
+            return;
+        }
+        ArrayList<String> filesList = new ArrayList<>();
+        for (int i = 2; i < commandSplit.length; i++){
+            filesList.add(commandSplit[i]);
+        }
+        peer.sendFiles(filesList);
+
     }
 
     private void requestForFiles(String[] commandSplit) throws Exception {
@@ -117,7 +137,7 @@ public class Host {
     }
 
 
-    private void connectToServer(String port) throws IOException {
+    private void connectToServer(String port) throws Exception {
         final int serverPort = Integer.parseInt(port);
         System.out.println("Peer: Connecting to localhost port: " + serverPort);
         Socket clientSocket = new Socket("localhost", serverPort);
@@ -129,7 +149,7 @@ public class Host {
         //to do pozamykać połączenia z peerami
     }
 
-    private void disconnectFromServer(String hostId) throws IOException {
+    private void disconnectFromServer(String hostId) throws Exception {
         System.out.println("Peer: Disconnecting "+hostId);
         Peer peerToDisconnect = findPeerByName(hostId);
         peerToDisconnect.getClientSocket().close();
@@ -137,7 +157,7 @@ public class Host {
         System.out.println("Peer: Disconnected "+hostId);
     }
 
-    private Peer findPeerByName(String hostId) throws IOException {
+    private Peer findPeerByName(String hostId) throws Exception {
         for (Peer activePeer : activePeers) {
             if (Objects.equals(activePeer.getName(), hostId)) {
                 return activePeer;
@@ -170,7 +190,10 @@ public class Host {
 
     }
 
-    private void addNewPeer(Socket clientSocket) {
+    private void addNewPeer(Socket clientSocket) throws Exception {
+
+        System.out.println("SER: new incoming connection");
+
         Peer peer = new Peer();
         peer.setClientSocket(clientSocket);
         peer.setName("Peer_" + hostId + "_" + counter);

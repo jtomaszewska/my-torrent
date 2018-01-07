@@ -31,10 +31,21 @@ public class FileData implements Serializable{
     }
 
     public String getCheckSumString(){
-        return checkSum.toString();
+        if (checkSum == null){
+            return "[none]";
+        }
+        return javax.xml.bind.DatatypeConverter.printHexBinary(checkSum);
     }
 
     public void setCheckSum(byte[] checkSum) {
         this.checkSum = checkSum;
+    }
+
+    @Override
+    public String toString() {
+        return "FileData{" +
+                "fileName='" + fileName + '\'' +
+                ", checkSum=" + getCheckSumString() +
+                '}';
     }
 }
