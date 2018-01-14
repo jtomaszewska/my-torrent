@@ -4,7 +4,7 @@ import java.util.Arrays;
 /**
  * Created by Justynaa on 2017-12-29.
  */
-public class FileData implements Serializable{
+public class FileData implements Serializable {
 
     private String fileName;
     private byte[] checkSum;
@@ -32,20 +32,18 @@ public class FileData implements Serializable{
 
     public String getCheckSumString(){
         if (checkSum == null){
-            return "[none]";
+            return "nie istnieje";
         }
         return javax.xml.bind.DatatypeConverter.printHexBinary(checkSum);
     }
 
-    public void setCheckSum(byte[] checkSum) {
-        this.checkSum = checkSum;
-    }
-
     @Override
     public String toString() {
-        return "FileData{" +
-                "fileName='" + fileName + '\'' +
-                ", checkSum=" + getCheckSumString() +
-                '}';
+        return "plik " + fileName + '\'' +
+                ", suma kontrolna " + getCheckSumString();
+    }
+
+    public void setCheckSum(byte[] checkSum) {
+        this.checkSum = checkSum;
     }
 }

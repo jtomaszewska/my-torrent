@@ -1,4 +1,3 @@
-import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -10,26 +9,23 @@ import java.util.*;
  */
 public class Host {
 
-
-    protected String workingDirectory = "C:\\Users\\Justynaa\\IdeaProjects\\TORrent\\Client";
-
+    protected String workingDirectory;
     private ServerSocket welcomeSocket;
     private Thread serverThread;
-
     private ArrayList<Peer> activePeers = new ArrayList<>();
     private int counter = 1;
     private int hostId;
 
     public Host(int hostId) {
         this.hostId = hostId;
-        workingDirectory =  Paths.get(".").toAbsolutePath().normalize().toString() + "\\" + hostId;
+        workingDirectory = Paths.get(".").toAbsolutePath().normalize().toString() + "\\" + hostId;
     }
 
     public void startHost(List<String> commandsToRun) throws Exception {
-        System.out.println("Starting host: " + hostId + ", working dir: " + workingDirectory);
+        System.out.println("Uruchomiony nowy host: " + hostId + ", folder: " + workingDirectory);
 
-        if (commandsToRun != null){
-            for (String command : commandsToRun){
+        if (commandsToRun != null) {
+            for (String command : commandsToRun) {
                 System.out.println("Uruchamiam polecenie " + command);
                 processCommand(command);
             }
@@ -64,10 +60,10 @@ public class Host {
                 serverThread.start();
                 break;
             case "connect":
-                connectToServer(commandSplit[1]);
+                connectToServer(commandSplit[1], commandSplit[2]);
                 break;
             case "disconnect":
-                disconnectFromServer(commandSplit[1]);
+                disconnectFrom(commandSplit[1]);
                 break;
             case "fileslist":
                 requestForFilesList(commandSplit[1]);
@@ -79,8 +75,8 @@ public class Host {
                 sendFilesToPeer(commandSplit);
                 break;
             case "exit":
-                clenaup();
                 System.out.println("zamykanie aplikacji");
+                clenaup();
                 System.exit(0);
                 break;
             case "wait":
@@ -88,6 +84,7 @@ public class Host {
                 break;
             case "setworkingdirectory":
                 this.workingDirectory = commandSplit[1];
+                System.out.println("folder roboczy ustawiony");
                 break;
             default:
                 System.out.println("nieznane polecenie: " + commandSplit[0]);
@@ -97,14 +94,14 @@ public class Host {
 
     private void sendFilesToPeer(String[] commandSplit) throws Exception {
         String hostId = commandSplit[1];
-        System.out.println("Wysyłam pliki do " + hostId);
+        System.out.println("Wysylam pliki do " + hostId);
         Peer peer = findPeerByName(hostId);
-        if (peer == null){
+        if (peer == null) {
             System.out.println("Nieznany peer: " + hostId);
             return;
         }
         ArrayList<String> filesList = new ArrayList<>();
-        for (int i = 2; i < commandSplit.length; i++){
+        for (int i = 2; i < commandSplit.length; i++) {
             filesList.add(commandSplit[i]);
         }
         peer.sendFiles(filesList);
@@ -113,23 +110,23 @@ public class Host {
 
     private void requestForFiles(String[] commandSplit) throws Exception {
         String hostId = commandSplit[1];
-        System.out.println("Wysyłam zapytanie o pliki do " + hostId);
+        System.out.println("Wysylam zapytanie o pliki do " + hostId);
         Peer peer = findPeerByName(hostId);
-        if (peer == null){
+        if (peer == null) {
             System.out.println("Nieznany peer: " + hostId);
             return;
         }
         ArrayList<String> filesList = new ArrayList<>();
-        for (int i = 2; i < commandSplit.length; i++){
+        for (int i = 2; i < commandSplit.length; i++) {
             filesList.add(commandSplit[i]);
         }
         peer.requestForFiles(filesList);
     }
 
     private void requestForFilesList(String hostId) throws Exception {
-        System.out.println("Wysyłam zapytanie o listę plików do " + hostId);
+        System.out.println("Wysylam zapytanie o listę plików do " + hostId);
         Peer peer = findPeerByName(hostId);
-        if (peer == null){
+        if (peer == null) {
             System.out.println("Nieznany peer: " + hostId);
             return;
         }
@@ -137,24 +134,39 @@ public class Host {
     }
 
 
-    private void connectToServer(String port) throws Exception {
+    private void connectToServer(String ip, String port) throws Exception {
         final int serverPort = Integer.parseInt(port);
-        System.out.println("Peer: Connecting to localhost port: " + serverPort);
-        Socket clientSocket = new Socket("localhost", serverPort);
+        System.out.println("Peer łączenie z: " + ip +" : "+ serverPort);
+        Socket clientSocket;
+        try {
+            clientSocket = new Socket(ip, serverPort);
+        }
+        catch(Exception e)
+        {
+            System.out.println("nie można połączyć z "+ip+" "+serverPort);
+            return;
+        }
         addNewPeer(clientSocket);
     }
 
     private void clenaup() throws Exception {
-        welcomeSocket.close();
-        //to do pozamykać połączenia z peerami
+        if(welcomeSocket!=null){
+            welcomeSocket.close();
+        }
+        for (Peer peer:activePeers) {
+            disconnectFrom(peer.getName());
+        }
     }
 
-    private void disconnectFromServer(String hostId) throws Exception {
-        System.out.println("Peer: Disconnecting "+hostId);
+    private void disconnectFrom(String hostId) throws Exception {
+        System.out.println("Rozłączenie z peerem " + hostId);
         Peer peerToDisconnect = findPeerByName(hostId);
-        peerToDisconnect.getClientSocket().close();
-        activePeers.remove(peerToDisconnect);
-        System.out.println("Peer: Disconnected "+hostId);
+        if(peerToDisconnect!=null){
+            peerToDisconnect.getClientSocket().close();
+            removePeer(peerToDisconnect);
+        } else {
+            System.out.println("Podany peer nie istnieje");
+        }
     }
 
     private Peer findPeerByName(String hostId) throws Exception {
@@ -168,13 +180,8 @@ public class Host {
 
     private void startServer(String port) throws Exception {
         final int serverPort = Integer.parseInt(port);
-        System.out.println("SER: Starting on port: " + serverPort);
-
-        System.out.println("SER: Server socket creating");
+        System.out.println("Serwer uruchomiony na porcie: " + serverPort);
         welcomeSocket = new ServerSocket(serverPort);
-        System.out.println("SER: Server socket listening");
-
-
         do {
             Socket clientSocket;
             try {
@@ -182,27 +189,24 @@ public class Host {
             } catch (SocketException es) {
                 return;
             }
-
             addNewPeer(clientSocket);
-
-
         } while (true);
-
     }
 
     private void addNewPeer(Socket clientSocket) throws Exception {
-
-        System.out.println("SER: new incoming connection");
-
         Peer peer = new Peer();
         peer.setClientSocket(clientSocket);
         peer.setName("Peer_" + hostId + "_" + counter);
-        peer.setWorkingDirectory(workingDirectory);
+        peer.setHost(this);
         peer.startListening();
         activePeers.add(peer);
         counter++;
+        System.out.println("Dodano połączenie z: " + peer.getName());
 
-        System.out.println("SER: new peer added: " + peer.getName());
+    }
 
+    public void removePeer(Peer peer) {
+        activePeers.remove(peer);
+        System.out.println("Rozłączono z "+peer.getName());
     }
 }

@@ -10,12 +10,11 @@ public class MyTorrent {
     public static void main(String[] args) throws Exception {
 
         if (args.length == 0) {
-            System.out.println("Brak argumentow: MyTorrent id skrypt");
+            System.out.println("Brak argumentow: MyTORrent id skrypt");
             return;
         }
 
         int id = Integer.parseInt(args[0]);
-
 
         Host host = new Host(id);
         List<String> commands = null;
@@ -25,8 +24,5 @@ public class MyTorrent {
             System.out.println("wczytano skrypt z poleceniami "+args[1]);
         }
         host.startHost(commands);
-
     }
-
-
 }

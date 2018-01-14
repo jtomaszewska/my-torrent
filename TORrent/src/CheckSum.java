@@ -9,7 +9,6 @@ public class CheckSum {
         return MessageDigest.getInstance("MD5").digest(data);
     }
 
-
     public static boolean chceckCheckSum(byte[] data, byte[] originalChecksum) throws Exception {
 
         byte[] newCheckSum = generateCheckSum(data);

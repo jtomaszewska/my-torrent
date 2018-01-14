@@ -15,11 +15,16 @@ public class FileHelper {
     public static FileData[] generateFilesList(String workingDirectory)throws Exception{
 
         List<String> list = new ArrayList<>();
-        File[] files = new File(workingDirectory).listFiles();
-        for (File file: files){
-            list.add(file.getName());
+        File fileDir = new File(workingDirectory);
+        if(fileDir.exists() && fileDir.isDirectory()) {
+            File[] files = fileDir.listFiles();
+            for (File file: files){
+                list.add(file.getName());
+            }
+            return readFiles(workingDirectory, list, false);
         }
-        return readFiles(workingDirectory, list, false);
+        System.out.println("folder "+workingDirectory + " nie istnieje");
+        return new FileData[0];
     }
 
     public static FileData[] readFiles(String workingDirectory, List<String> filesToRead)throws Exception {
@@ -50,23 +55,9 @@ public class FileHelper {
         }
 
         return filesList.toArray(new FileData[0]);
-
-//        for (int i = 0; i < filesToRead.size(); i++) {
-//            filesList[i] = new FileData();
-//            filesList[i].setFileName(filesToRead.get(i));
-//            byte[] file = FileHelper.fileRead(workingDirectory + "\\" + filesToRead.get(i));
-//            filesList[i].setCheckSum(CheckSum.generateCheckSum(file));
-//            filesList[i].setData(file);
-//            if (fillData){
-//                filesList[i].setData(file);
-//            }
-//
-//        }
-//        return filesList;
     }
 
     public static FileData[] createFileDataList(List<String> filesToRead)throws Exception{
-
         FileData[] filesList = new FileData[filesToRead.size()];
         for (int i = 0; i < filesToRead.size(); i++) {
             filesList[i] = new FileData();
@@ -74,7 +65,6 @@ public class FileHelper {
         }
         return filesList;
     }
-
 
     public static byte[] fileRead(String filePath)throws Exception{
         Path path = Paths.get(filePath);

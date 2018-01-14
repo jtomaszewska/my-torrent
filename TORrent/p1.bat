@@ -1,1 +1,0 @@
-java.exe -cp .\out\production\TORrent MyTorrent 1 p1skrypt.txt
